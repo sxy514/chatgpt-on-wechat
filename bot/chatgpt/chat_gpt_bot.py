@@ -1,5 +1,6 @@
 # encoding:utf-8
 
+import re
 import time
 
 import openai
@@ -131,10 +132,13 @@ class ChatGPTBot(Bot, OpenAIImage):
             response = openai.ChatCompletion.create(api_key=api_key, messages=session.messages, **args)
             # logger.debug("[CHATGPT] response={}".format(response))
             # logger.info("[ChatGPT] reply={}, total_tokens={}".format(response.choices[0]['message']['content'], response["usage"]["total_tokens"]))
+            rawcontent = response.choices[0]["message"]["content"]
+            content = re.sub(r'<think>.*?</think>', '', rawcontent, flags=re.DOTALL)    # if you don't like deepseek's <think>, you can replace it
+            
             return {
                 "total_tokens": response["usage"]["total_tokens"],
                 "completion_tokens": response["usage"]["completion_tokens"],
-                "content": response.choices[0]["message"]["content"],
+                "content": content,
             }
         except Exception as e:
             need_retry = retry_count < 2
